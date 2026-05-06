@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Finance App - Interactive Garden</title>
+<style>
+    :root { --glow: #00ffd5; --red-glow: #ff4d4d; --teal: #008b8b; --dark-green: #0a2d21; }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+        display: flex;
+        justify-content: space-between; 
+        align-items: center;
+        min-height: 100vh;
+        background: radial-gradient(circle at center, #0a1520, #000000 90%);
+        overflow: hidden;
+        font-family: 'Segoe UI', Arial, sans-serif;
+        padding: 0 80px;
+    }
+
+    /* --- FORM CONTAINER --- */
+    .login-container {
+        width: 550px;
+        background: rgba(0, 30, 40, 0.8);
+        backdrop-filter: blur(10px);
+        padding: 40px;
+        border-radius: 20px;
+        border: 1px solid rgba(0, 255, 213, 0.2);
+        box-shadow: 0 0 40px rgba(0,0,0,0.8), 0 0 20px rgba(0, 255, 213, 0.1);
+        z-index: 10;
+    }
+
+    h2 { text-align: center; margin-bottom: 20px; color: #e0ffff; font-weight: 300; letter-spacing: 2px; }
+    .form-group { display: flex; gap: 10px; }
+    .input-box { position: relative; width: 100%; }
+
+    input {
+        width: 100%; padding: 12px; margin: 8px 0;
+        background: rgba(255,255,255,0.05);
+        border: 1px solid rgba(0, 255, 213, 0.3);
+        outline: none; border-radius: 8px; color: white;
+    }
+
+    .eye-icon {
+        position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+        cursor: pointer; user-select: none; opacity: 0.7; transition: opacity 0.3s;
+        display: flex; align-items: center;
+    }
+    .eye-icon:hover { opacity: 1; }
+    .eye-icon svg { width: 20px; height: 20px; fill: none; stroke: var(--glow); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+    button {
+        width: 100%; padding: 14px; margin-top: 15px; border: none; border-radius: 8px;
+        background: linear-gradient(45deg, #008b8b, #00ffd5);
+        color: #001e28; font-size: 18px; cursor: pointer; font-weight: bold;
+        transition: all 0.3s ease;
+    }
+    button:hover { transform: translateY(-2px); background: linear-gradient(45deg, #00ffd5, #e0ffff); box-shadow: 0 0 15px #00ffd5, 0 0 30px #00ffd5; }
+
+    .toggle-link { display: block; text-align: center; margin-top: 20px; color: rgba(224, 255, 255, 0.6); font-size: 14px; }
+    .toggle-link span { color: var(--glow); font-weight: bold; cursor: pointer; text-decoration: underline; }
+    .hidden { display: none; }
+
+    /* --- GARDEN SCENE --- */
+    .scene { position: relative; width: 550px; height: 600px; }
+    
+    .moon { 
+        position: absolute; top: -20px; right: 40px; width: 70px; height: 70px; 
+        background: #fff; border-radius: 50%; opacity: 0.8; 
+        box-shadow: 0 0 40px #fff, 0 0 80px rgba(255, 255, 255, 0.2); 
+        transition: all 0.4s ease; cursor: pointer; z-index: 5;
+    }
+    .moon:hover { opacity: 1; transform: scale(1.1); box-shadow: 0 0 60px #fff, 0 0 120px rgba(255, 255, 255, 0.4); }
+    
+    /* --- CUTE REBUILT BUTTERFLIES --- */
+    .fly-wrapper {
+        position: absolute;
+        width: 30px;
+        height: 30px;
+        z-index: 8;
+        pointer-events: none;
+    }
+
+    .flee-container {
+        width: 100%;
+        height: 100%;
+        transition: transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .butterfly { 
+        position: relative;
+        width: 4px;
+        height: 14px;
+        background: rgba(255, 255, 255, 0.3); /* Subtle body */
+        border-radius: 4px;
+        transform-style: preserve-3d;
+    }
+    
+    .wing {
+        position: absolute;
+        width: 14px;
+        height: 12px;
+        background: rgba(0, 255, 213, 0.4);
+        /* Teardrop wing shape */
+        border-radius: 50% 50% 50% 0;
+        box-shadow: 0 0 10px var(--glow);
+        transform-origin: right bottom;
+        animation: flap 0.15s infinite alternate ease-in-out;
+        left: -14px;
+        top: -4px;
+    }
+
+    .wing.right {
+        left: 4px;
+        border-radius: 50% 50% 0 50%;
+        transform-origin: left bottom;
+        animation-name: flap-right;
+    }
+
+    /* Red Variant Colors */
+    .red .butterfly { background: rgba(255, 100, 100, 0.3); }
+    .red .wing {
+        background: rgba(255, 77, 77, 0.5);
+        box-shadow: 0 0 10px var(--red-glow);
+    }
+
+    @keyframes flap {
+        from { transform: rotateY(0deg) rotateZ(-10deg); }
+        to { transform: rotateY(75deg) rotateZ(10deg); }
+    }
+    @keyframes flap-right {
+        from { transform: rotateY(0deg) rotateZ(10deg); }
+        to { transform: rotateY(-75deg) rotateZ(-10deg); }
+    }
+
+    /* Flight Path CSS */
+    .fw1 { animation: path1 20s linear infinite; }
+    .fw2 { animation: path2 24s linear infinite; }
+    .fw3 { animation: path1 28s linear infinite reverse; }
+    .fw4 { animation: path2 32s linear infinite reverse; }
+    .fw5 { animation: path1 22s linear infinite; animation-delay: -5s; }
+    .fw6 { animation: path2 26s linear infinite; animation-delay: -10s; }
+
+    @keyframes path1 { 
+        0% { top: 10%; left: 0%; } 50% { top: 50%; left: 90%; } 100% { top: 10%; left: 0%; } 
+    }
+    @keyframes path2 { 
+        0% { top: 80%; left: 90%; } 50% { top: 20%; left: 10%; } 100% { top: 80%; left: 90%; } 
+    }
+
+    /* --- FLOWERS & GRASS --- */
+    .grass-container { position: absolute; bottom: 40px; width: 100%; height: 150px; }
+    .blade { position: absolute; bottom: 0; width: 4px; background: linear-gradient(to top, #051a14, #00ffd566); border-radius: 50% 50% 0 0; transform-origin: bottom; filter: blur(1px); }
+    .flower { position: absolute; bottom: 40px; left: 50%; margin-left: var(--x); width: 2px; height: 500px; transform-origin: bottom center; animation: sway 4s ease-in-out infinite alternate; }
+    .flower:hover { filter: drop-shadow(0 0 15px var(--glow)) brightness(1.2); cursor: pointer; }
+    .stem { position: absolute; left: 50%; bottom: 0; width: 6px; height: 0; transform: translateX(-50%); background: linear-gradient(to top, #0a2d21, #00ffd5); border-radius: 10px; animation: grow 2.5s ease var(--delay) forwards; }
+    .leaf { position: absolute; width: 40px; height: 20px; background: radial-gradient(circle at center, rgba(0, 255, 213, 0.4), rgba(0, 50, 50, 0.8)); border-radius: 40px 0 40px 0; opacity: 0; box-shadow: 0 0 10px rgba(0, 255, 213, 0.2); }
+    .leaf.L { left: -35px; transform: rotate(-30deg) scale(0); }
+    .leaf.R { left: 5px; transform: rotate(30deg) scaleX(-1) scale(0); }
+    .center { position: absolute; left: 50%; bottom: calc(var(--h) - 10px); transform: translateX(-50%) scale(0); width: 25px; height: 20px; border-radius: 50%; background: #00ffd5; box-shadow: 0 0 30px #00ffd5, inset 0 0 10px #fff; animation: pop .5s ease calc(var(--delay) + 2s) forwards; }
+    .petal { position: absolute; left: 50%; bottom: calc(var(--h) - 5px); width: 35px; height: 70px; background: linear-gradient(rgba(255,255,255,0.8), rgba(0, 255, 213, 0.4)); border-radius: 50% 50% 40% 40%; transform-origin: bottom center; opacity: 0; backdrop-filter: blur(2px); border: 1px solid rgba(255,255,255,0.2); }
+    @keyframes grow { to { height: var(--h); } }
+    @keyframes sway { from { transform: rotate(-1.5deg); } to { transform: rotate(1.5deg); } }
+    @keyframes pop { to { transform: translateX(-50%) scale(1); } }
+    @keyframes leafPop { to { opacity: 1; transform: rotate(var(--r)) scale(var(--s, 1)); } }
+    @keyframes petalAnimate { to { opacity: 1; transform: translateX(-50%) rotate(var(--rot)) scale(1); } }
+    .p1{--rot: -60deg;} .p2{--rot: -20deg;} .p3{--rot: 20deg;} .p4{--rot: 60deg;}
+    .petal { animation: petalAnimate 1s ease calc(var(--delay) + 2.2s) forwards; }
+</style>
+</head>
+<body>
+
+<div class="login-container" id="form-container">
+    <div id="login-form">
+        <h2>SIGN IN</h2>
+        <input type="text" placeholder="Username">
+        <div class="input-box">
+            <input type="password" placeholder="Password" id="login-pass">
+            <span class="eye-icon" id="eye-login" onclick="togglePassword('login-pass', 'eye-login')">
+                <svg viewBox="0 0 24 24"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
+            </span>
+        </div>
+        <button onclick="handleLogin()">ENTER</button>
+        <p class="toggle-link">Don't have an account? <span onclick="toggleForm()">Sign Up</span></p>
+    </div>
+
+    <div id="signup-form" class="hidden">
+        <h2>CREATE ACCOUNT</h2>
+        <div class="form-group"><input type="text" placeholder="First Name"><input type="text" placeholder="Last Name"></div>
+        <input type="email" placeholder="Email"><input type="text" placeholder="Username">
+        <div class="input-box">
+            <input type="password" placeholder="Password" id="signup-pass">
+            <span class="eye-icon" id="eye-signup" onclick="togglePassword('signup-pass', 'eye-signup')">
+                <svg viewBox="0 0 24 24"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
+            </span>
+        </div>
+        <button onclick="handleSignup()">REGISTER</button>
+        <p class="toggle-link">Already a member? <span onclick="toggleForm()">Login</span></p>
+    </div>
+</div>
+
+<div class="scene">
+    <div class="moon"></div>
+    
+    <!-- Redesigned Butterflies -->
+    <div class="fly-wrapper fw1"><div class="flee-container"><div class="butterfly"><div class="wing left"></div><div class="wing right"></div></div></div></div>
+    <div class="fly-wrapper fw2"><div class="flee-container"><div class="butterfly red"><div class="wing left"></div><div class="wing right"></div></div></div></div>
+    <div class="fly-wrapper fw3"><div class="flee-container"><div class="butterfly"><div class="wing left"></div><div class="wing right"></div></div></div></div>
+    <div class="fly-wrapper fw4"><div class="flee-container"><div class="butterfly red"><div class="wing left"></div><div class="wing right"></div></div></div></div>
+    <div class="fly-wrapper fw5"><div class="flee-container"><div class="butterfly red"><div class="wing left"></div><div class="wing right"></div></div></div></div>
+    <div class="fly-wrapper fw6"><div class="flee-container"><div class="butterfly"><div class="wing left"></div><div class="wing right"></div></div></div></div>
+
+    <div class="grass-container" id="grass"></div>
+
+    <!-- Flowers -->
+    <div class="flower" style="--x:-160px; --h:200px; --delay:0s;"><div class="stem"></div><div class="leaf L" style="bottom: 50px; --r:-30deg; animation: leafPop 1s forwards 1s;"></div><div class="leaf R" style="bottom: 80px; --r:30deg; --s:-1; animation: leafPop 1s forwards 1.2s;"></div><div class="petal p1"></div><div class="petal p2"></div><div class="petal p3"></div><div class="petal p4"></div><div class="center"></div></div>
+    <div class="flower" style="--x:-80px; --h:300px; --delay:0.4s;"><div class="stem"></div><div class="leaf L" style="bottom: 60px; --r:-30deg; animation: leafPop 1s forwards 1.4s;"></div><div class="leaf R" style="bottom: 110px; --r:30deg; --s:-1; animation: leafPop 1s forwards 1.6s;"></div><div class="leaf L" style="bottom: 160px; --r:-30deg; animation: leafPop 1s forwards 1.8s;"></div><div class="petal p1"></div><div class="petal p2"></div><div class="petal p3"></div><div class="petal p4"></div><div class="center"></div></div>
+    <div class="flower" style="--x:0px; --h:380px; --delay:0.8s;"><div class="stem"></div><div class="leaf L" style="bottom: 70px; --r:-30deg; animation: leafPop 1s forwards 1.8s;"></div><div class="leaf R" style="bottom: 130px; --r:30deg; --s:-1; animation: leafPop 1s forwards 2s;"></div><div class="leaf L" style="bottom: 190px; --r:-30deg; animation: leafPop 1s forwards 2.2s;"></div><div class="petal p1"></div><div class="petal p2"></div><div class="petal p3"></div><div class="petal p4"></div><div class="center"></div></div>
+    <div class="flower" style="--x:80px; --h:280px; --delay:1.2s;"><div class="stem"></div><div class="leaf R" style="bottom: 90px; --r:30deg; --s:-1; animation: leafPop 1s forwards 2.2s;"></div><div class="petal p1"></div><div class="petal p2"></div><div class="petal p3"></div><div class="petal p4"></div><div class="center"></div></div>
+    <div class="flower" style="--x:160px; --h:220px; --delay:1.6s;"><div class="stem"></div><div class="leaf L" style="bottom: 60px; --r:-30deg; animation: leafPop 1s forwards 2.6s;"></div><div class="petal p1"></div><div class="petal p2"></div><div class="petal p3"></div><div class="petal p4"></div><div class="center"></div></div>
+</div>
+
+<script>
+    function toggleForm() {
+        document.getElementById('login-form').classList.toggle('hidden');
+        document.getElementById('signup-form').classList.toggle('hidden');
+    }
+
+    function togglePassword(inputId, iconId) {
+        const input = document.getElementById(inputId);
+        const iconSpan = document.getElementById(iconId);
+        if (input.type === 'password') { input.type = 'text'; iconSpan.innerHTML = '<svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>'; }
+        else { input.type = 'password'; iconSpan.innerHTML = '<svg viewBox="0 0 24 24"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>'; }
+    }
+
+    function handleLogin() { alert('Signing in...'); }
+    function handleSignup() { alert('Account Created!'); toggleForm(); }
+
+    const grassContainer = document.getElementById('grass');
+    for (let i = 0; i < 40; i++) {
+        const blade = document.createElement('div');
+        blade.className = 'blade';
+        blade.style.height = (Math.random() * 100 + 50) + 'px';
+        blade.style.left = (Math.random() * 100) + '%';
+        blade.style.animation = `sway ${3 + Math.random() * 2}s ease-in-out infinite alternate`;
+        blade.style.animationDelay = Math.random() * 2 + 's';
+        grassContainer.appendChild(blade);
+    }
+
+    // --- BUTTERFLY FLEE LOGIC ---
+    document.addEventListener('mousemove', (e) => {
+        const containers = document.querySelectorAll('.flee-container');
+        const fleeDistance = 120;
+
+        containers.forEach(c => {
+            const rect = c.getBoundingClientRect();
+            const bX = rect.left + rect.width / 2;
+            const bY = rect.top + rect.height / 2;
+            
+            const diffX = bX - e.clientX;
+            const diffY = bY - e.clientY;
+            const distance = Math.sqrt(diffX * diffX + diffY * diffY);
+
+            if (distance < fleeDistance) {
+                const angle = Math.atan2(diffY, diffX);
+                const push = (fleeDistance - distance) * 1.5;
+                const moveX = Math.cos(angle) * push;
+                const moveY = Math.sin(angle) * push;
+                c.style.transform = `translate(${moveX}px, ${moveY}px)`;
+            } else {
+                c.style.transform = `translate(0, 0)`;
+            }
+        });
+    });
+</script>
+
+</body>
+</html>
